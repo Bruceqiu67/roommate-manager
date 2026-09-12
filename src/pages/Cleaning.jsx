@@ -7,18 +7,22 @@ const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
 export default function Cleaning() {
   const household = getCurrentHousehold();
   const members = getHouseholdMembers(household?.id);
-  const tasks = getCleaningTasks();
-
+  const [tasks, setTasks] = useState(() => getCleaningTasks());
   const [currentDate, setCurrentDate] = useState(new Date());
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+  const [schedules, setSchedules] = useState(() => getSchedules(monthStr));
+
+  const refresh = (mStr = monthStr) => {
+    setTasks(getCleaningTasks());
+    setSchedules(getSchedules(mStr));
+  };
+
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showScheduleForm, setShowScheduleForm] = useState(false);
   const [taskName, setTaskName] = useState('');
   const [taskDesc, setTaskDesc] = useState('');
-
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
-  const schedules = getSchedules(monthStr);
 
   // Calendar data
   const firstDay = new Date(year, month, 1).getDay();
@@ -30,6 +34,20 @@ export default function Cleaning() {
   for (let i = 0; i < firstDay; i++) calendarDays.push(null);
   for (let d = 1; d <= daysInMonth; d++) calendarDays.push(d);
 
+  const handlePrevMonth = () => {
+    const next = new Date(year, month - 1);
+    setCurrentDate(next);
+    const nextStr = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`;
+    setSchedules(getSchedules(nextStr));
+  };
+
+  const handleNextMonth = () => {
+    const next = new Date(year, month + 1);
+    setCurrentDate(next);
+    const nextStr = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`;
+    setSchedules(getSchedules(nextStr));
+  };
+
   const handleAddTask = (e) => {
     e.preventDefault();
     if (!taskName.trim()) return;
@@ -37,6 +55,17 @@ export default function Cleaning() {
     setTaskName('');
     setTaskDesc('');
     setShowTaskForm(false);
+    refresh();
+  };
+
+  const handleDeleteTask = (id) => {
+    deleteCleaningTask(id);
+    refresh();
+  };
+
+  const handleToggleSchedule = (id) => {
+    toggleScheduleComplete(id);
+    refresh();
   };
 
   const handleGenerateSchedule = () => {
@@ -45,6 +74,7 @@ export default function Cleaning() {
     const end = `${monthStr}-${String(daysInMonth).padStart(2, '0')}`;
     generateSchedule(start, end);
     setShowScheduleForm(false);
+    refresh();
   };
 
   const getScheduleForDay = (day) => {
@@ -90,7 +120,7 @@ export default function Cleaning() {
           {tasks.map(t => (
             <div key={t.id} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-100 rounded-lg text-sm text-slate-600">
               <span>{t.title}</span>
-              <button onClick={() => deleteCleaningTask(t.id)} className="text-slate-300 hover:text-red-500">
+              <button onClick={() => handleDeleteTask(t.id)} className="text-slate-300 hover:text-red-500 cursor-pointer">
                 <Trash2 className="w-3 h-3" />
               </button>
             </div>
@@ -102,11 +132,11 @@ export default function Cleaning() {
       <div className="bg-white rounded-2xl border border-slate-100 p-5">
         {/* Month Navigation */}
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => setCurrentDate(new Date(year, month - 1))} className="p-2 hover:bg-slate-100 rounded-lg transition">
+          <button onClick={handlePrevMonth} className="p-2 hover:bg-slate-100 rounded-lg transition cursor-pointer">
             <ChevronLeft className="w-5 h-5 text-slate-400" />
           </button>
           <h2 className="font-semibold text-slate-800">{year}年{month + 1}月</h2>
-          <button onClick={() => setCurrentDate(new Date(year, month + 1))} className="p-2 hover:bg-slate-100 rounded-lg transition">
+          <button onClick={handleNextMonth} className="p-2 hover:bg-slate-100 rounded-lg transition cursor-pointer">
             <ChevronRight className="w-5 h-5 text-slate-400" />
           </button>
         </div>
@@ -139,8 +169,8 @@ export default function Cleaning() {
                 {schedule && member && (
                   <div className="mt-1">
                     <button
-                      onClick={() => toggleScheduleComplete(schedule.id)}
-                      className={`w-full text-left text-xs p-1 rounded-lg transition ${
+                      onClick={() => handleToggleSchedule(schedule.id)}
+                      className={`w-full text-left text-xs p-1 rounded-lg transition cursor-pointer ${
                         schedule.completed ? 'bg-green-100 text-green-600 line-through' : memberColor(member.id)
                       }`}
                     >
@@ -165,8 +195,8 @@ export default function Cleaning() {
             return (
               <div key={s.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                 <button
-                  onClick={() => toggleScheduleComplete(s.id)}
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition ${
+                  onClick={() => handleToggleSchedule(s.id)}
+                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition cursor-pointer ${
                     s.completed ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300 hover:border-green-400'
                   }`}
                 >

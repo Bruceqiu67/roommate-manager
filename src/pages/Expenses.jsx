@@ -17,8 +17,15 @@ export default function Expenses() {
   const user = getCurrentUser();
   const household = getCurrentHousehold();
   const members = getHouseholdMembers(household?.id);
-  const expenses = getExpenses();
-  const { debts } = getBalanceSummary();
+  const [expenses, setExpenses] = useState(() => getExpenses());
+  const [balanceSummary, setBalanceSummary] = useState(() => getBalanceSummary());
+  const { debts } = balanceSummary;
+
+  const refresh = () => {
+    setExpenses(getExpenses());
+    setBalanceSummary(getBalanceSummary());
+  };
+
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
@@ -34,6 +41,14 @@ export default function Expenses() {
     setCategory('other');
     setSplitAmong(members.map(m => m.id));
     setShowForm(false);
+    refresh();
+  };
+
+  const handleDelete = (id) => {
+    if (confirm('确定删除这条费用记录？')) {
+      deleteExpense(id);
+      refresh();
+    }
   };
 
   const toggleMember = (id) => {
@@ -128,8 +143,8 @@ export default function Expenses() {
                     <p className="text-xs text-slate-400">{new Date(exp.createdAt).toLocaleDateString('zh-CN')}</p>
                   </div>
                   <button
-                    onClick={() => { if (confirm('确定删除这条费用记录？')) deleteExpense(exp.id); }}
-                    className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                    onClick={() => handleDelete(exp.id)}
+                    className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

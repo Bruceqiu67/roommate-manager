@@ -5,7 +5,9 @@ import { Plus, Trash2, Package, AlertTriangle, ShoppingCart, ArrowDown, ArrowUp 
 export default function Items() {
   const household = getCurrentHousehold();
   const members = getHouseholdMembers(household?.id);
-  const items = getSharedItems();
+  const [items, setItems] = useState(() => getSharedItems());
+  const refresh = () => setItems(getSharedItems());
+
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -25,6 +27,7 @@ export default function Items() {
     setThreshold('');
     setUnit('个');
     setShowForm(false);
+    refresh();
   };
 
   const handleConsume = (itemId) => {
@@ -33,6 +36,7 @@ export default function Items() {
     setConsumeQty('');
     setConsumeNote('');
     setActiveItem(null);
+    refresh();
   };
 
   const handleRestock = (itemId) => {
@@ -40,6 +44,14 @@ export default function Items() {
     restockItem(itemId, restockQty);
     setRestockQty('');
     setActiveItem(null);
+    refresh();
+  };
+
+  const handleDeleteItem = (id) => {
+    if (confirm('确定删除该物品？')) {
+      deleteSharedItem(id);
+      refresh();
+    }
   };
 
   const lowItems = items.filter(i => i.quantity <= i.threshold);
@@ -104,8 +116,8 @@ export default function Items() {
                     </p>
                   </div>
                   <button
-                    onClick={() => { if (confirm('确定删除该物品？')) deleteSharedItem(item.id); }}
-                    className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                    onClick={() => handleDeleteItem(item.id)}
+                    className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

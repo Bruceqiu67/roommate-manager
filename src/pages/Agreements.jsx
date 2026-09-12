@@ -6,7 +6,12 @@ export default function Agreements() {
   const user = getCurrentUser();
   const household = getCurrentHousehold();
   const members = getHouseholdMembers(household?.id);
-  const agreements = getAgreements();
+  const [agreements, setAgreements] = useState(() => getAgreements());
+  const [, setTick] = useState(0);
+  const refresh = () => {
+    setAgreements(getAgreements());
+    setTick(t => t + 1);
+  };
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -18,6 +23,19 @@ export default function Agreements() {
     setTitle('');
     setContent('');
     setShowForm(false);
+    refresh();
+  };
+
+  const handleVote = (id, voteType) => {
+    voteAgreement(id, voteType);
+    refresh();
+  };
+
+  const handleDelete = (id) => {
+    if (confirm('确定删除这条公约？')) {
+      deleteAgreement(id);
+      refresh();
+    }
   };
 
   const statusMap = {
@@ -95,9 +113,9 @@ export default function Agreements() {
                   {a.status === 'draft' && (
                     <div className="flex gap-3">
                       <button
-                        onClick={() => voteAgreement(a.id, 'yes')}
+                        onClick={() => handleVote(a.id, 'yes')}
                         disabled={myVote?.vote === 'yes'}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition ${
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ${
                           myVote?.vote === 'yes'
                             ? 'bg-green-100 text-green-600 cursor-default'
                             : 'bg-green-50 text-green-600 hover:bg-green-100 border border-green-200'
@@ -107,9 +125,9 @@ export default function Agreements() {
                         {myVote?.vote === 'yes' ? '已赞同' : '赞同'}
                       </button>
                       <button
-                        onClick={() => voteAgreement(a.id, 'no')}
+                        onClick={() => handleVote(a.id, 'no')}
                         disabled={myVote?.vote === 'no'}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition ${
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ${
                           myVote?.vote === 'no'
                             ? 'bg-red-100 text-red-600 cursor-default'
                             : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
@@ -125,8 +143,8 @@ export default function Agreements() {
                 {/* Delete */}
                 <div className="px-5 py-3 bg-slate-50 border-t border-slate-100">
                   <button
-                    onClick={() => { if (confirm('确定删除这条公约？')) deleteAgreement(a.id); }}
-                    className="text-xs text-slate-400 hover:text-red-500 transition flex items-center gap-1"
+                    onClick={() => handleDelete(a.id)}
+                    className="text-xs text-slate-400 hover:text-red-500 transition flex items-center gap-1 cursor-pointer"
                   >
                     <Trash2 className="w-3 h-3" />
                     删除

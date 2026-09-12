@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { getCurrentUser, getCurrentHousehold, logout } from '../lib/store';
-import { LayoutDashboard, Receipt, Calendar, Package, FileText, LogOut, Home, Menu, X } from 'lucide-react';
+import { getCurrentUser, getCurrentHousehold, getHouseholdMembers, switchUser, logout } from '../lib/store';
+import { LayoutDashboard, Receipt, Calendar, Package, FileText, LogOut, Home, Menu } from 'lucide-react';
 import { useState } from 'react';
 
 const navItems = [
@@ -14,6 +14,7 @@ const navItems = [
 export default function Layout() {
   const user = getCurrentUser();
   const household = getCurrentHousehold();
+  const members = getHouseholdMembers(household?.id);
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -77,9 +78,28 @@ export default function Layout() {
               <p className="text-xs text-slate-400 truncate">{user?.email}</p>
             </div>
           </div>
+          {members.length > 1 && (
+            <div className="mb-3 pt-2 border-t border-slate-100">
+              <label className="block text-[11px] font-medium text-slate-400 mb-1">切换室友视角：</label>
+              <select
+                value={user?.id}
+                onChange={(e) => {
+                  switchUser(e.target.value);
+                  window.location.reload();
+                }}
+                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+              >
+                {members.map(m => (
+                  <option key={m.id} value={m.id}>
+                    👤 {m.name} {m.id === user?.id ? '(当前)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-500 hover:bg-slate-50 rounded-lg transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-500 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             退出登录

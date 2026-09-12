@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getCurrentUser, getCurrentHousehold, getExpenses, addExpense, deleteExpense, getBalanceSummary, getHouseholdMembers } from '../lib/store';
-import { Plus, Trash2, Receipt, ArrowUpRight, ArrowDownRight, X } from 'lucide-react';
+import { Plus, Trash2, Receipt, ArrowUpRight, X } from 'lucide-react';
 
 const CATEGORIES = [
   { value: 'rent', label: '🏠 房租', color: 'bg-blue-50 text-blue-600' },

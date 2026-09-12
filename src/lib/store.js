@@ -415,3 +415,179 @@ export function getMonthlyExpenseStats() {
 
   return Object.values(stats).sort((a, b) => a.month.localeCompare(b.month));
 }
+
+// ===== Demo Mode & Member Switching =====
+export function switchUser(userId) {
+  const data = loadData();
+  const target = data.users.find(u => u.id === userId);
+  if (!target) throw new Error('用户不存在');
+  data.currentUser = target;
+  saveData(data);
+  return target;
+}
+
+export function seedDemoData() {
+  const householdId = 'hh_sunshine_302';
+  const u1 = { id: 'u_zhangwei', name: '张伟 (我)', email: 'zhangwei@demo.com', password: '123', householdId, createdAt: new Date().toISOString() };
+  const u2 = { id: 'u_lichen', name: '李晨', email: 'lichen@demo.com', password: '123', householdId, createdAt: new Date().toISOString() };
+  const u3 = { id: 'u_wangxiaoli', name: '王晓丽', email: 'wangxiaoli@demo.com', password: '123', householdId, createdAt: new Date().toISOString() };
+  const users = [u1, u2, u3];
+
+  const household = {
+    id: householdId,
+    name: '阳光花园 302 室',
+    inviteCode: 'SUN302',
+    createdBy: u1.id,
+    createdAt: new Date().toISOString(),
+  };
+
+  const now = Date.now();
+  const expenses = [
+    {
+      id: 'exp_rent',
+      householdId,
+      title: '7月份合租房租总额',
+      amount: 4500,
+      category: 'rent',
+      paidBy: u1.id,
+      splitAmong: [u1.id, u2.id, u3.id],
+      createdAt: new Date(now - 6 * 86400000).toISOString(),
+    },
+    {
+      id: 'exp_elec',
+      householdId,
+      title: '夏季空调高峰电费',
+      amount: 360,
+      category: 'electric',
+      paidBy: u2.id,
+      splitAmong: [u1.id, u2.id, u3.id],
+      createdAt: new Date(now - 4 * 86400000).toISOString(),
+    },
+    {
+      id: 'exp_water',
+      householdId,
+      title: '农夫山泉大桶装饮用水 (4桶)',
+      amount: 72,
+      category: 'water',
+      paidBy: u3.id,
+      splitAmong: [u1.id, u2.id, u3.id],
+      createdAt: new Date(now - 2 * 86400000).toISOString(),
+    },
+    {
+      id: 'exp_daily',
+      householdId,
+      title: '公共卫生间洗洁精与洁厕灵',
+      amount: 54,
+      category: 'daily',
+      paidBy: u1.id,
+      splitAmong: [u1.id, u2.id, u3.id],
+      createdAt: new Date(now - 1 * 86400000).toISOString(),
+    },
+    {
+      id: 'exp_food',
+      householdId,
+      title: '周末室友聚餐火锅食材',
+      amount: 210,
+      category: 'food',
+      paidBy: u2.id,
+      splitAmong: [u1.id, u2.id, u3.id],
+      createdAt: new Date(now - 4 * 3600000).toISOString(),
+    },
+  ];
+
+  const cleaningTasks = [
+    { id: 'ct_1', householdId, title: '客厅地面吸尘与公区垃圾打包', description: '每周二/五清理客厅沙发、地面吸尘，将公区垃圾扔到楼下分类点', createdAt: new Date().toISOString() },
+    { id: 'ct_2', householdId, title: '厨房台面油污与水槽彻底清洁', description: '做饭后清理水槽残渣、使用油污净喷擦油烟机与灶台', createdAt: new Date().toISOString() },
+    { id: 'ct_3', householdId, title: '卫生间干湿分离地面与台盆消毒', description: '地面刮水、补充洗手液并使用消毒液刷洗马桶内圈', createdAt: new Date().toISOString() },
+  ];
+
+  // Generate cleaning schedule for current month
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cleaningSchedules = [];
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const task = cleaningTasks[(d - 1) % cleaningTasks.length];
+    const member = users[(d - 1) % users.length];
+    cleaningSchedules.push({
+      id: 'cs_' + dateStr,
+      householdId,
+      taskId: task.id,
+      userId: member.id,
+      date: dateStr,
+      completed: d <= today.getDate() && (d % 2 === 1),
+    });
+  }
+
+  const sharedItems = [
+    { id: 'item_1', householdId, name: '维达超韧抽纸 (3层)', quantity: 1, threshold: 2, unit: '提', createdAt: new Date().toISOString() },
+    { id: 'item_2', householdId, name: '45L 抽绳加厚分类垃圾袋', quantity: 5, threshold: 2, unit: '卷', createdAt: new Date().toISOString() },
+    { id: 'item_3', householdId, name: '蓝月亮除菌洁净洗衣液', quantity: 2, threshold: 1, unit: '瓶', createdAt: new Date().toISOString() },
+    { id: 'item_4', householdId, name: '立白浓缩柠檬洗洁精', quantity: 0, threshold: 1, unit: '瓶', createdAt: new Date().toISOString() },
+  ];
+
+  const itemConsumptions = [
+    { id: 'ic_1', itemId: 'item_1', userId: u2.id, quantity: 1, note: '客厅茶几抽纸用完补领一包', createdAt: new Date(now - 86400000).toISOString() },
+    { id: 'ic_2', itemId: 'item_4', userId: u3.id, quantity: 1, note: '厨房洗洁精完全用空，急需补货', createdAt: new Date(now - 12 * 3600000).toISOString() },
+  ];
+
+  const agreements = [
+    {
+      id: 'agr_1',
+      householdId,
+      title: '公区夜间静音公约',
+      content: '工作日 23:00、周末 24:00 后公区保持安静。洗漱吹头、语音游戏连麦、观看视频请在各自卧室关门并佩戴耳机。',
+      status: 'active',
+      createdBy: u1.id,
+      createdAt: new Date(now - 7 * 86400000).toISOString(),
+    },
+    {
+      id: 'agr_2',
+      householdId,
+      title: '厨房使用后随手清理与全屋禁烟',
+      content: '厨房使用完毕后半小时内清理水槽厨余、擦拭灶台。合租所有公共区域及卧室内严禁吸烟，以维护安全与空气清新。',
+      status: 'active',
+      createdBy: u3.id,
+      createdAt: new Date(now - 5 * 86400000).toISOString(),
+    },
+    {
+      id: 'agr_3',
+      householdId,
+      title: '朋友留宿需提前报备公约',
+      content: '邀请朋友或亲属留宿超过 1 晚需提前至少 12 小时在室友群告知并征得全员同意，非紧急情况每月留宿累计不得超过 3 天。',
+      status: 'draft',
+      createdBy: u2.id,
+      createdAt: new Date(now - 1 * 86400000).toISOString(),
+    },
+  ];
+
+  const agreementVotes = [
+    { id: 'av_1_1', agreementId: 'agr_1', userId: u1.id, vote: 'yes', createdAt: new Date(now - 6 * 86400000).toISOString() },
+    { id: 'av_1_2', agreementId: 'agr_1', userId: u2.id, vote: 'yes', createdAt: new Date(now - 6 * 86400000).toISOString() },
+    { id: 'av_1_3', agreementId: 'agr_1', userId: u3.id, vote: 'yes', createdAt: new Date(now - 6 * 86400000).toISOString() },
+    { id: 'av_2_1', agreementId: 'agr_2', userId: u1.id, vote: 'yes', createdAt: new Date(now - 4 * 86400000).toISOString() },
+    { id: 'av_2_2', agreementId: 'agr_2', userId: u2.id, vote: 'yes', createdAt: new Date(now - 4 * 86400000).toISOString() },
+    { id: 'av_2_3', agreementId: 'agr_2', userId: u3.id, vote: 'yes', createdAt: new Date(now - 4 * 86400000).toISOString() },
+    { id: 'av_3_1', agreementId: 'agr_3', userId: u2.id, vote: 'yes', createdAt: new Date(now - 1 * 86400000).toISOString() },
+    { id: 'av_3_2', agreementId: 'agr_3', userId: u1.id, vote: 'yes', createdAt: new Date(now - 12 * 3600000).toISOString() },
+  ];
+
+  const data = {
+    households: [household],
+    users,
+    currentUser: u1,
+    expenses,
+    cleaningTasks,
+    cleaningSchedules,
+    sharedItems,
+    itemConsumptions,
+    agreements,
+    agreementVotes,
+  };
+
+  saveData(data);
+  return u1;
+}

@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { getCurrentUser, getCurrentHousehold, getHouseholdMembers, addCleaningTask, getCleaningTasks, deleteCleaningTask, generateSchedule, getSchedules, toggleScheduleComplete } from '../lib/store';
-import { Plus, Trash2, Calendar, Check, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
+import { getCurrentHousehold, getHouseholdMembers, addCleaningTask, getCleaningTasks, deleteCleaningTask, generateSchedule, getSchedules, toggleScheduleComplete } from '../lib/store';
+import { Trash2, Calendar, Check, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
 
 export default function Cleaning() {
-  const user = getCurrentUser();
   const household = getCurrentHousehold();
   const members = getHouseholdMembers(household?.id);
   const tasks = getCleaningTasks();

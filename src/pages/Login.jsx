@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { login } from '../lib/store';
-import { Home, Eye, EyeOff } from 'lucide-react';
+import { login, seedDemoData } from '../lib/store';
+import { Home, Eye, EyeOff, Sparkles } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -20,6 +20,12 @@ export default function Login() {
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleDemoLogin = () => {
+    seedDemoData();
+    navigate('/');
+    window.location.reload();
   };
 
   return (
@@ -74,6 +80,20 @@ export default function Login() {
               登录
             </button>
           </form>
+
+          <div className="mt-5 pt-5 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-medium transition-all shadow-sm flex items-center justify-center gap-2 text-sm cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4 text-amber-200 animate-pulse" />
+              <span>✨ 演示模式：一键填充数据体验（面试官通道）</span>
+            </button>
+            <p className="text-xs text-slate-400 text-center mt-2">
+              无需注册，即刻载入 3 人合租场景与账单、排班、预警全量数据
+            </p>
+          </div>
 
           <p className="text-center text-sm text-slate-500 mt-6">
             还没有账号？

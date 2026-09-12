@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { getCurrentUser, getCurrentHousehold, getHouseholdMembers, addSharedItem, getSharedItems, deleteSharedItem, consumeItem, restockItem, getItemConsumptions } from '../lib/store';
+import { getCurrentHousehold, getHouseholdMembers, addSharedItem, getSharedItems, deleteSharedItem, consumeItem, restockItem, getItemConsumptions } from '../lib/store';
 import { Plus, Trash2, Package, AlertTriangle, ShoppingCart, ArrowDown, ArrowUp } from 'lucide-react';
 
 export default function Items() {
-  const user = getCurrentUser();
   const household = getCurrentHousehold();
   const members = getHouseholdMembers(household?.id);
   const items = getSharedItems();
